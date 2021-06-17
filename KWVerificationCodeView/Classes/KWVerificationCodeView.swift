@@ -222,6 +222,10 @@ public protocol KWVerificationCodeViewDelegate: class {
 
     textFieldViews.first?.activate()
   }
+    
+    open func openKeyboard() {
+        textFieldViews.first?.activate()
+    }
 }
 
 // MARK: - KWTextFieldDelegate
