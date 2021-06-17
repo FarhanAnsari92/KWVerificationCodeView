@@ -98,6 +98,15 @@ protocol KWTextFieldDelegate: class {
     NotificationCenter.default.removeObserver(self)
   }
 
+  // MARK: - Private Methods
+  private func setup() {
+    loadViewFromNib()
+    numberTextField.delegate = self
+    numberTextField.autocorrectionType = UITextAutocorrectionType.no
+
+    NotificationCenter.default.addObserver(self, selector: #selector(textFieldDidChange(_:)), name: NSNotification.Name.UITextFieldTextDidChange, object: numberTextField)
+  }
+
   // MARK: - Public Methods
   public func activate() {
     numberTextField.becomeFirstResponder()
@@ -115,23 +124,15 @@ protocol KWTextFieldDelegate: class {
     updateUnderline()
   }
 
-  // MARK: - Private Methods
-  private func setup() {
-    loadViewFromNib()
-    numberTextField.delegate = self
-    numberTextField.autocorrectionType = UITextAutocorrectionType.no
-
-    NotificationCenter.default.addObserver(self, selector: #selector(textFieldDidChange(_:)), name: UITextField.textDidChangeNotification, object: numberTextField)
-  }
-
-  private func updateUnderline() {
-    underlineView.backgroundColor = numberTextField.text?.trim() != "" ? underlineSelectedColor : underlineColor
-  }
-
-  @objc private func textFieldDidChange(_ notification: Foundation.Notification) {
+  // MARK: - FilePrivate Methods
+  @objc dynamic fileprivate func textFieldDidChange(_ notification: Foundation.Notification) {
     if numberTextField.text?.count == 0 {
       numberTextField.text = " "
     }
+  }
+
+  fileprivate func updateUnderline() {
+    underlineView.backgroundColor = numberTextField.text?.trim() != "" ? underlineSelectedColor : underlineColor
   }
 }
 
