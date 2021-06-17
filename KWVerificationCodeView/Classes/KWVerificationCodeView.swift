@@ -116,7 +116,7 @@ public protocol KWVerificationCodeViewDelegate: class {
     }
   }
 
-  fileprivate var textFieldViews = [KWTextFieldView]()
+  public var textFieldViews = [KWTextFieldView]()
   private var keyboardAppearance = UIKeyboardAppearance.default
   private var textFieldFont = UIFont.systemFont(ofSize: 24.0)
   private var requiredDigits: UInt8 {
@@ -200,7 +200,7 @@ public protocol KWVerificationCodeViewDelegate: class {
       currentX += (textFieldViewWidth + textFieldViewLeadingSpace)
     }
 
-    textFieldViews[0].numberTextField.text = " "
+    textFieldViews[0].numberTextField.text = ""
   }
 
   private func setupVerificationCodeView() {
@@ -210,10 +210,6 @@ public protocol KWVerificationCodeViewDelegate: class {
 
     textFieldViews.first?.activate()
   }
-    
-    open func openKeyboard() {
-        textFieldViews.first?.activate()
-    }
 }
 
 // MARK: - KWTextFieldDelegate
@@ -224,11 +220,11 @@ extension KWVerificationCodeView: KWTextFieldDelegate {
   }
 
   func moveToPrevious(_ textFieldView: KWTextFieldView, oldCode: String) {
-    if textFieldViews.last == textFieldView && oldCode != " " {
+    if textFieldViews.last == textFieldView && oldCode != "" {
       return
     }
 
-    if textFieldView.code == " " {
+    if textFieldView.code == "" {
       let validIndex = textFieldViews.index(of: textFieldView)! == 0 ? 0 : textFieldViews.index(of: textFieldView)! - 1
       textFieldViews[validIndex].activate()
       textFieldViews[validIndex].reset()
