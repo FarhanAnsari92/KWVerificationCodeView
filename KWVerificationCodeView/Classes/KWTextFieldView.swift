@@ -8,13 +8,17 @@
 
 import UIKit
 
+protocol BackSpaceDelegate {
+  func handleDeleteBackward(textField: CustomTextField)
+}
+
 protocol KWTextFieldDelegate: class {
   func moveToNext(_ textFieldView: KWTextFieldView)
   func moveToPrevious(_ textFieldView: KWTextFieldView, oldCode: String)
   func didChangeCharacters()
 }
 
-@IBDesignable class KWTextFieldView: UIView {
+@IBDesignable public class KWTextFieldView: UIView {
 
   // MARK: - Constants
   static let maxCharactersLength = 1
@@ -70,7 +74,7 @@ protocol KWTextFieldDelegate: class {
   }
 
   // MARK: - IBOutlets
-  @IBOutlet weak var numberTextField: UITextField!
+  @IBOutlet weak var numberTextField: CustomTextField!
   @IBOutlet weak private var underlineView: UIView!
 
   // MARK: - Variables
@@ -102,16 +106,17 @@ protocol KWTextFieldDelegate: class {
   private func setup() {
     loadViewFromNib()
     numberTextField.delegate = self
+    numberTextField.backSpaceDelegate = self
     numberTextField.autocorrectionType = UITextAutocorrectionType.no
 
-    NotificationCenter.default.addObserver(self, selector: #selector(textFieldDidChange(_:)), name: NSNotification.Name.UITextFieldTextDidChange, object: numberTextField)
+    NotificationCenter.default.addObserver(self, selector: #selector(textFieldDidChange(_:)), name: UITextField.textDidChangeNotification, object: numberTextField)
   }
 
   // MARK: - Public Methods
   public func activate() {
     numberTextField.becomeFirstResponder()
     if numberTextField.text?.count == 0 {
-      numberTextField.text = " "
+      numberTextField.text = ""
     }
   }
 
@@ -120,14 +125,14 @@ protocol KWTextFieldDelegate: class {
   }
 
   public func reset() {
-    numberTextField.text = " "
+    numberTextField.text = ""
     updateUnderline()
   }
 
   // MARK: - FilePrivate Methods
   @objc dynamic fileprivate func textFieldDidChange(_ notification: Foundation.Notification) {
     if numberTextField.text?.count == 0 {
-      numberTextField.text = " "
+      numberTextField.text = ""
     }
   }
 
@@ -142,17 +147,43 @@ extension KWTextFieldView: UITextFieldDelegate {
     let currentString = numberTextField.text!
     let newString = currentString.replacingCharacters(in: textField.text!.range(from: range)!, with: string)
 
-    if newString.count > type(of: self).maxCharactersLength {
+    if newString.count > 0 {
       delegate?.moveToNext(self)
       textField.text = string
     } else if newString.count == 0 {
-      delegate?.moveToPrevious(self, oldCode: textField.text!)
-      numberTextField.text = " "
+      numberTextField.isEmptyTag = true
+      numberTextField.text = ""
     }
 
     delegate?.didChangeCharacters()
     updateUnderline()
 
     return newString.count <= type(of: self).maxCharactersLength
+  }
+}
+
+extension KWTextFieldView: BackSpaceDelegate {
+  func handleDeleteBackward(textField: CustomTextField) {
+    delegate?.moveToPrevious(self, oldCode: textField.text!)
+  }
+}
+
+// MARK: - Custom TextField
+class CustomTextField: UITextField {
+  var backSpaceDelegate: BackSpaceDelegate?
+  var isEmptyTag = false
+
+  override func deleteBackward() {
+    super.deleteBackward()
+
+    // called when textfield is empty. you can customize yourself.
+    if isEmptyTag {
+      isEmptyTag = false
+      return
+    }
+
+    if let txt = text, txt.isEmpty {
+      backSpaceDelegate?.handleDeleteBackward(textField: self)
+    }
   }
 }
